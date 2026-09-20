@@ -1,0 +1,17 @@
+{
+  "name": "Smriti-NER: Cognitive & Memory Companion",
+  "short_name": "Smriti-NER",
+  "description": "AI-Powered Cognitive Assistance & Memory Platform for Elderly Dementia Patients in North-East India",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F7F5EF",
+  "theme_color": "#1E6F5C",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231E6F5C' width='100' height='100' rx='20'/><text y='65' x='18' font-size='60'>🌿</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

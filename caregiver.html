@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caregiver & ASHA Clinical Portal — Smriti-NER</title>
+    <link rel="stylesheet" href="css/elderly-theme.css">
+    <link rel="stylesheet" href="css/caregiver.css">
+    <style>
+        .portal-header {
+            background: #1A5276;
+            color: #FFFFFF;
+            padding: 16px 24px;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .portal-header h1 { font-size: 1.5rem; }
+        .back-link {
+            color: #FFFFFF;
+            text-decoration: none;
+            font-weight: bold;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 10px;
+        }
+        .back-link:hover { background: rgba(255,255,255,0.3); }
+    </style>
+</head>
+<body>
+    <div class="app-container" style="padding-bottom: 40px;">
+        <header class="portal-header">
+            <div>
+                <h1>🌿 Smriti-NER Clinical & Caregiver Portal</h1>
+                <p>National Health Mission (NHM) • North-Eastern Geriatric Mental Health Surveillance</p>
+            </div>
+            <a href="index.html" class="back-link">← Return to Patient View</a>
+        </header>
+
+        <main class="cg-container">
+            <!-- Patient Profile Summary Hero -->
+            <div class="cg-hero">
+                <div class="cg-hero-info">
+                    <h2 id="cg-patient-name">Aita / Koka (আইতা / ককা)</h2>
+                    <p id="cg-patient-age">74 yrs • Kamrup / Guwahati, Assam</p>
+                    <p style="margin-top:4px; font-size:0.9rem; opacity:0.85;">Stage: Mild Cognitive Impairment (MCI) • Monitored by ASHA Worker (Kamrup PHC)</p>
+                </div>
+                <div class="cg-stats-pill-group">
+                    <div class="cg-stat-pill">
+                        <div class="stat-num" id="cg-overall-score">76 / 100</div>
+                        <div class="stat-lbl">Cognitive Index</div>
+                    </div>
+                    <div class="cg-stat-pill">
+                        <div class="stat-num" id="cg-total-sessions">14</div>
+                        <div class="stat-lbl">Sessions Logged</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Report Action Bar -->
+            <div class="cg-export-bar">
+                <button class="btn-export-clinical" onclick="window.caregiverDashboard.exportClinicalReport()">
+                    📄 Download Formal Clinical Assessment (MoCA / MMSE Report)
+                </button>
+            </div>
+
+            <!-- Cognitive Domain Health Breakdown -->
+            <div>
+                <h3 class="cg-section-title">
+                    <span>📊</span> <span>Cognitive Health Domain Radar (5 Dimensions)</span>
+                </h3>
+                <div class="cg-domains-grid" id="cg-domains-container">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Longitudinal Performance Trend Chart -->
+            <div class="cg-chart-card">
+                <h3 class="cg-section-title">
+                    <span>📈</span> <span>Longitudinal Stability & Accuracy Trend (Past 7 Sessions)</span>
+                </h3>
+                <p style="font-size:0.9rem; color:var(--text-secondary);">Reflects task completion accuracy, reaction latency, and hesitation reduction over time.</p>
+                <div class="trend-bars-container" id="cg-trend-bars">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Clinical Alerts Feed -->
+            <div>
+                <h3 class="cg-section-title">
+                    <span>🔔</span> <span>Early Cognitive Warning & Adherence Alerts</span>
+                </h3>
+                <div class="cg-alerts-list" id="cg-alerts-list">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Clinical Notes -->
+            <div class="cg-notes-box">
+                <h3 class="cg-section-title">
+                    <span>📝</span> <span>Healthcare Worker & Family Observation Notes</span>
+                </h3>
+                <div class="cg-notes-input-row">
+                    <input type="text" id="cg-notes-input" class="cg-notes-input" placeholder="Record clinical observation or behavioural changes...">
+                    <button class="btn-save-note" onclick="window.caregiverDashboard.saveObservationNote()">+ Save Note</button>
+                </div>
+                <div id="cg-notes-feed">
+                    <div class="caregiver-note-item">
+                        <div class="note-time">Yesterday, 06:15 PM • Caregiver Deepa (ASHA Facilitator)</div>
+                        <div class="note-content">Patient was very joyful while matching the Jaapi hat and recounted memories of village Bihu celebrations.</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/i18n.js"></script>
+    <script src="js/storage-db.js"></script>
+    <script src="js/cogni-adapt-engine.js"></script>
+    <script src="js/caregiver-dashboard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (window.caregiverDashboard) {
+                    window.caregiverDashboard.init();
+                }
+            }, 300);
+        });
+    </script>
+</body>
+</html>
