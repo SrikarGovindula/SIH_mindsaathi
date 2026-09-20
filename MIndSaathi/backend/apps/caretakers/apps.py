@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+
+class CaretakersConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.caretakers'
+    verbose_name = 'Caretakers'
