@@ -1,0 +1,470 @@
+/**
+ * Doctor Portal & Role Authentication Styling — Smriti-NER
+ * ─────────────────────────────────────────────────────────────────
+ */
+
+/* ── Role Badge in Header ── */
+.role-badge-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.role-patient {
+    background: #E8F8F5;
+    color: #1E6F5C;
+    border-color: #A3E4D7;
+}
+
+.role-caretaker {
+    background: #FEF9E7;
+    color: #B7950B;
+    border-color: #F9E79F;
+}
+
+.role-doctor {
+    background: #EBF5FB;
+    color: #1A5276;
+    border-color: #A9CCE3;
+}
+
+.role-badge-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* ── PIN & Role Selection Modals ── */
+.auth-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(5px);
+    animation: fadeInOverlay 0.25s ease;
+}
+
+.auth-modal-card {
+    position: relative;
+    background: #FFFFFF;
+    border-radius: 24px;
+    padding: 32px 28px;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+    animation: slideUpModal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.role-picker-card {
+    max-width: 580px;
+}
+
+.auth-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    background: #F2F3F4;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #7F8C8D;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-modal-close:hover { background: #E5E7E9; color: #1C2833; }
+
+.auth-modal-icon { font-size: 3.2rem; margin-bottom: 8px; }
+.auth-modal-title { font-size: 1.45rem; font-weight: 800; color: #1A5276; margin-bottom: 6px; }
+.auth-modal-desc { font-size: 0.92rem; color: #566573; margin-bottom: 20px; line-height: 1.5; }
+
+/* ── Role Selector Cards ── */
+.role-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.role-select-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 2px solid #EAEDED;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    background: #FFFFFF;
+}
+
+.role-select-card:hover {
+    border-color: #1A5276;
+    background: #F4F6F7;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+.role-card-icon { font-size: 2.4rem; flex-shrink: 0; }
+.role-card-body h3 { font-size: 1.1rem; margin-bottom: 4px; color: #1C2833; }
+.role-card-body p { font-size: 0.85rem; color: #566573; line-height: 1.4; margin-bottom: 6px; }
+
+.role-card-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.badge-free { background: #E8F8F5; color: #1E6F5C; }
+.badge-pin { background: #FEF9E7; color: #B7950B; }
+
+/* ── PIN Keypad ── */
+.pin-input-container { margin-bottom: 12px; }
+.auth-pin-input {
+    width: 180px;
+    height: 52px;
+    text-align: center;
+    font-size: 2rem;
+    letter-spacing: 0.4em;
+    font-weight: 800;
+    border: 2px solid #BDC3C7;
+    border-radius: 12px;
+    background: #F8F9FA;
+    font-family: monospace;
+}
+
+.auth-pin-input:focus {
+    outline: none;
+    border-color: #1A5276;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(26,82,118,0.15);
+}
+
+.auth-pin-error {
+    min-height: 22px;
+    font-size: 0.88rem;
+    color: #C0392B;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.shake-anim { animation: shake 0.4s ease-in-out; }
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+}
+
+.auth-pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 260px;
+    margin: 0 auto 16px auto;
+}
+
+.keypad-btn {
+    height: 48px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: #F2F4F4;
+    border: 1px solid #D5D8DC;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: inherit;
+}
+
+.keypad-btn:hover { background: #E5E8E8; }
+.keypad-btn:active { transform: scale(0.95); }
+.keypad-clear { background: #FDEDEC; color: #C0392B; }
+.keypad-backspace { background: #EAEDED; color: #2C3E50; }
+
+.auth-btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #1A5276, #2980B9);
+    color: white;
+    font-size: 1.05rem;
+    font-weight: 800;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(26,82,118,0.3);
+    font-family: inherit;
+    transition: transform 0.15s;
+}
+
+.auth-btn-submit:hover { transform: translateY(-2px); }
+.auth-modal-hint { font-size: 0.8rem; color: #7F8C8D; margin-top: 10px; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   DOCTOR CLINICAL DASHBOARD STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+
+.doc-portal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.doc-header-card {
+    background: linear-gradient(135deg, #1A5276, #2471A3);
+    color: white;
+    padding: 24px;
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 8px 24px rgba(26,82,118,0.25);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.doc-patient-name { font-size: 1.7rem; font-weight: 800; margin-bottom: 4px; }
+.doc-patient-meta { font-size: 0.95rem; opacity: 0.9; margin-bottom: 8px; }
+.doc-patient-diag { font-size: 0.9rem; background: rgba(255,255,255,0.18); padding: 4px 12px; border-radius: 20px; display: inline-block; font-weight: 600; }
+
+.btn-doc-export {
+    background: #FFFFFF;
+    color: #1A5276;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.15s;
+    font-family: inherit;
+}
+
+.btn-doc-export:hover { transform: translateY(-2px); }
+
+/* ── Clinical Score Pills ── */
+.doc-score-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.doc-score-card {
+    background: white;
+    padding: 20px;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--card-shadow);
+    text-align: center;
+    border-top: 4px solid #1A5276;
+}
+
+.doc-score-num { font-size: 2.2rem; font-weight: 800; color: #1E6F5C; line-height: 1.1; }
+.doc-score-title { font-size: 1rem; font-weight: 700; color: #2C3E50; margin-top: 6px; }
+.doc-score-sub { font-size: 0.8rem; color: #7F8C8D; margin-top: 2px; }
+
+/* ── Cognitive Domains Grid ── */
+.doc-domains-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.doc-domain-card {
+    background: white;
+    padding: 18px;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--card-shadow);
+    border: 1px solid #EAEDED;
+}
+
+.doc-domain-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.doc-domain-title { font-size: 1.1rem; font-weight: 700; color: #1C2833; margin-bottom: 2px; }
+.doc-domain-game { font-size: 0.82rem; color: #7F8C8D; }
+.doc-domain-score-box { text-align: right; }
+.doc-domain-num { font-size: 1.3rem; font-weight: 800; color: #1A5276; display: block; }
+.doc-domain-status { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+
+.status-good { background: #E8F8F5; color: #1E6F5C; }
+.status-warning { background: #FDEDEC; color: #C0392B; }
+
+.doc-domain-bar-bg {
+    height: 8px;
+    background: #EAEDED;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.doc-domain-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1E6F5C, #27AE60);
+    border-radius: 4px;
+}
+
+.doc-domain-desc { font-size: 0.88rem; color: #566573; line-height: 1.5; }
+
+/* ── Prescription Pad Section ── */
+.doc-rx-card {
+    background: white;
+    padding: 24px;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--card-shadow);
+    border-top: 4px solid #27AE60;
+}
+
+.doc-rx-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.doc-rx-item {
+    background: #F9FBFB;
+    border: 1px solid #D5DBDB;
+    border-radius: 14px;
+    padding: 16px;
+    border-left: 5px solid #27AE60;
+}
+
+.rx-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.rx-med-name { font-size: 1.15rem; font-weight: 800; color: #1C2833; }
+.rx-brand { font-size: 0.9rem; font-weight: normal; color: #7F8C8D; }
+.rx-dosage-badge { background: #E8F8F5; color: #1E6F5C; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; margin-right: 6px; }
+.rx-freq-badge { background: #EBF5FB; color: #2980B9; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.82rem; }
+.btn-rx-remove { background: #FDEDEC; color: #C0392B; border: 1px solid #F5B7B1; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+.rx-purpose { font-size: 0.9rem; color: #566573; margin-bottom: 6px; }
+.rx-footer { display: flex; justify-content: space-between; font-size: 0.8rem; color: #7F8C8D; border-top: 1px dashed #EAEDED; padding-top: 6px; margin-top: 6px; }
+.rx-sync-status { color: #27AE60; font-weight: 600; }
+
+/* ── Prescription Input Form ── */
+.doc-rx-form {
+    background: #F4F6F7;
+    padding: 18px;
+    border-radius: 14px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.doc-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.doc-form-group label { font-size: 0.82rem; font-weight: 700; color: #34495E; }
+.doc-form-input, .doc-form-select {
+    padding: 10px 12px;
+    border: 1px solid #BDC3C7;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: white;
+    font-family: inherit;
+}
+
+.btn-add-rx {
+    background: linear-gradient(135deg, #27AE60, #2ECC71);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 10px rgba(39,174,96,0.3);
+}
+
+/* ── Clinical Progress Notes ── */
+.doc-notes-card {
+    background: white;
+    padding: 24px;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--card-shadow);
+    border-top: 4px solid #1A5276;
+}
+
+.doc-notes-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.doc-note-card {
+    background: #F8F9FA;
+    border: 1px solid #EAEDED;
+    border-left: 4px solid #1A5276;
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.doc-note-header { display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 700; color: #1A5276; margin-bottom: 4px; }
+.doc-note-date { color: #7F8C8D; font-weight: normal; }
+.doc-note-icd { font-size: 0.8rem; background: #EAECEE; padding: 2px 8px; border-radius: 4px; display: inline-block; font-family: monospace; margin-bottom: 6px; }
+.doc-note-body { font-size: 0.92rem; color: #2C3E50; line-height: 1.5; margin-bottom: 6px; }
+.doc-note-recom { font-size: 0.88rem; color: #1E6F5C; }
+
+.doc-note-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #F4F6F7;
+    padding: 16px;
+    border-radius: 12px;
+}
+
+.doc-note-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px;
+    border: 1px solid #BDC3C7;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    box-sizing: border-box;
+}
+
+.btn-save-doc-note {
+    align-self: flex-end;
+    background: #1A5276;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+}

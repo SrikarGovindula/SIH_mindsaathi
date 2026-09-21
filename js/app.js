@@ -1,0 +1,272 @@
+/**
+ * Smriti-NER Master Application Coordinator
+ * Handles:
+ * - Elderly-friendly Screen Routing
+ * - Accessibility Controls (Font Size, High Contrast, Audio)
+ * - Multilingual Language Switcher
+ * - Time & Greeting Updates
+ */
+
+class AppNavigator {
+    constructor() {
+        this.currentScreen = 'home-screen';
+        this.fontSizeLevel = parseInt(localStorage.getItem('smriti_font_size') || '1'); // 1 = Normal, 2 = Large, 3 = Extra Large
+        this.highContrast = localStorage.getItem('smriti_high_contrast') === 'true';
+    }
+
+    init() {
+        this.applyAccessibilitySettings();
+        this.updateHeaderTimeAndGreeting();
+        this.bindEvents();
+
+        // Check if caregiver screen was requested via URL hash or default
+        const hash = window.location.hash.replace('#', '');
+        if (hash) {
+            this.showScreen(hash);
+        } else {
+            this.showScreen('home-screen');
+        }
+
+        // Update Role UI (badge + nav permissions)
+        if (window.authManager) {
+            window.authManager.updateRoleUI();
+        }
+
+        // Apply translations
+        if (window.i18n) {
+            window.i18n.applyTranslations();
+        }
+
+        // Initial voice greeting + AI welcome bubble
+        setTimeout(() => {
+            if (window.voiceAssistant && window.i18n) {
+                const lang = window.i18n.getLang();
+                const honorific = window.CARETAKER_RESPONSES?.[lang]?.honorific || '';
+
+                // Warm, human-sounding welcome per language
+                const welcomes = {
+                    as: `নমস্কাৰ ${honorific}! মই মিত্ৰ — আপোনাৰ মিত্ৰ আৰু সহযোগী। আজি আপুনি কেনে আছে? মোক কিবা কওক।`,
+                    bn: `নমস্কার ${honorific}! আমি মিত্র — আপনার বিশ্বস্ত সঙ্গী। আজকে কেমন আছেন? আমাকে কিছু বলুন।`,
+                    hi: `नमस्ते ${honorific}! मैं मित्र हूँ — आपकी अपनी साथी। आज कैसा महसूस हो रहा है? मुझसे कुछ बताइए।`,
+                    en: `Hello ${honorific}! I'm Mitra, your caring companion. How are you feeling today? Please talk to me — I'm here to listen.`,
+                    brx: `নমস্কাৰ ${honorific}! মো মিত্ৰ — নোংথাংনি মিত্ৰ। দিনৈ নোংথাঙা বেৰে? মোখৌ থাংনা থাও।`,
+                    mni: `নমস্কার ${honorific}! ঐ মিত্র — নহাকপী মিত্র। ঙসিদি কনা চাদুনা লৈরি? ঐখু ৱারোল পানবিযু।`,
+                    lus: `Chibai ${honorific}! Ka hming chu Mitra — ka lo ṭhe deuh a ni. Vawiin i hrisel em? Ka buaipui turin lo rawn biak rawh.`,
+                    kha: `Khublei ${honorific}! Nga Mitra — ngi lad lungrang. Mynta phi zia bha? Ong ia nga — nga don hei.`
+                };
+
+                const welcome = welcomes[lang] || welcomes['en'];
+                window.voiceAssistant.addChatBubble('ai', welcome, '🤗');
+                window.voiceAssistant.speakWithEmotion(welcome, 'warm');
+            }
+        }, 800);
+
+        // Update API Key UI (top button + notice bar)
+        if (window.voiceAssistant?.updateApiKeyUI) {
+            window.voiceAssistant.updateApiKeyUI();
+        }
+
+        // Auto-show Gemini API key setup immediately on visit if no key stored
+        setTimeout(() => {
+            const hasKey = localStorage.getItem('smriti_gemini_key');
+            if (!hasKey) {
+                window.showGeminiKeyModal?.() || window.voiceAssistant?._showApiKeyPrompt();
+            }
+        }, 600);
+    }
+
+    bindEvents() {
+        // Language selector change
+        const langSelect = document.getElementById('lang-selector');
+        if (langSelect) {
+            langSelect.value = window.i18n ? window.i18n.getLang() : 'as';
+            langSelect.addEventListener('change', (e) => {
+                if (window.i18n) {
+                    window.i18n.setLanguage(e.target.value);
+                }
+            });
+        }
+
+        window.addEventListener('languageChanged', () => {
+            this.updateHeaderTimeAndGreeting();
+            if (window.reminders) {
+                window.reminders.renderRemindersUI();
+            }
+            if (window.caregiverDashboard) {
+                window.caregiverDashboard.refreshLanguage();
+            }
+            if (window.authManager) {
+                window.authManager.updateRoleUI();
+            }
+        });
+    }
+
+    showScreen(screenId) {
+        // Hide all screens
+        document.querySelectorAll('.app-screen').forEach(s => s.classList.add('hidden'));
+
+        // Show target screen
+        const target = document.getElementById(screenId);
+        if (target) {
+            target.classList.remove('hidden');
+            target.classList.add('fade-in');
+            this.currentScreen = screenId;
+            window.location.hash = screenId;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Update bottom nav button active states
+            document.querySelectorAll('.bottom-nav-btn').forEach(btn => btn.classList.remove('active'));
+            const navBtnMap = {
+                'home-screen': 'bottom-nav-home',
+                'games-screen': 'bottom-nav-games',
+                'reminders-screen': 'bottom-nav-reminders',
+                'wellness-screen': 'bottom-nav-wellness',
+                'caregiver-screen': 'bottom-nav-caregiver',
+                'doctor-screen': 'bottom-nav-doctor'
+            };
+            const activeNavId = navBtnMap[screenId];
+            if (activeNavId) {
+                document.getElementById(activeNavId)?.classList.add('active');
+            }
+
+            // Screen-specific hooks
+            if (screenId === 'reminders-screen' && window.reminders) {
+                window.reminders.renderRemindersUI();
+            } else if (screenId === 'caregiver-screen' && window.caregiverDashboard) {
+                window.caregiverDashboard.init();
+            } else if (screenId === 'doctor-screen' && window.doctorDashboard) {
+                window.doctorDashboard.init();
+            } else if (screenId === 'wellness-screen' && window.calmBreathing) {
+                window.calmBreathing.init();
+            }
+        }
+    }
+
+    launchGame(gameKey) {
+        this.showScreen('game-active-container');
+        const container = document.getElementById('game-active-container');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (gameKey === 'memory-match') {
+            window.memoryMatch = new MemoryMatchGame('game-active-container');
+            window.memoryMatch.init(1);
+        } else if (gameKey === 'tea-garden') {
+            window.teaGarden = new TeaGardenGame('game-active-container');
+            window.teaGarden.init(1);
+        } else if (gameKey === 'routine-sequence') {
+            window.routineSequence = new RoutineSequenceGame('game-active-container');
+            window.routineSequence.init(1);
+        } else if (gameKey === 'pattern-weave') {
+            window.patternWeave = new PatternWeaveGame('game-active-container');
+            window.patternWeave.init(1);
+        } else if (gameKey === 'calm-breathing') {
+            window.calmBreathing = new CalmBreathingModule('game-active-container');
+            window.calmBreathing.init();
+        }
+    }
+
+    cycleFontSize() {
+        this.fontSizeLevel = (this.fontSizeLevel % 3) + 1;
+        localStorage.setItem('smriti_font_size', this.fontSizeLevel);
+        this.applyAccessibilitySettings();
+        if (window.voiceAssistant) {
+            const labels = { 1: "Regular size", 2: "Large font size", 3: "Extra large font size" };
+            window.voiceAssistant.speak(labels[this.fontSizeLevel]);
+        }
+    }
+
+    toggleHighContrast() {
+        this.highContrast = !this.highContrast;
+        localStorage.setItem('smriti_high_contrast', this.highContrast);
+        this.applyAccessibilitySettings();
+        if (window.voiceAssistant) {
+            window.voiceAssistant.speak(this.highContrast ? "High contrast on" : "Normal contrast on");
+        }
+    }
+
+    applyAccessibilitySettings() {
+        const body = document.body;
+
+        // Font size classes
+        body.classList.remove('font-size-1', 'font-size-2', 'font-size-3');
+        body.classList.add(`font-size-${this.fontSizeLevel}`);
+
+        // High contrast class
+        if (this.highContrast) {
+            body.classList.add('high-contrast-mode');
+        } else {
+            body.classList.remove('high-contrast-mode');
+        }
+
+        const contrastBtn = document.getElementById('btn-contrast-toggle');
+        if (contrastBtn) {
+            contrastBtn.setAttribute('aria-pressed', this.highContrast.toString());
+        }
+    }
+
+    getGreetingText() {
+        const hour = new Date().getHours();
+        if (hour < 12) {
+            return window.i18n ? window.i18n.t('greetingMorning') : 'Good morning!';
+        } else if (hour < 17) {
+            return window.i18n ? window.i18n.t('greetingAfternoon') : 'Good afternoon!';
+        } else {
+            return window.i18n ? window.i18n.t('greetingEvening') : 'Good evening!';
+        }
+    }
+
+    updateHeaderTimeAndGreeting() {
+        const greetingEl = document.getElementById('header-greeting-text');
+        const dateEl = document.getElementById('header-date-text');
+
+        if (greetingEl) {
+            greetingEl.textContent = this.getGreetingText();
+        }
+
+        if (dateEl) {
+            const now = new Date();
+            const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+            const dateStr = now.toLocaleDateString(undefined, options);
+            dateEl.textContent = dateStr;
+        }
+    }
+
+    emergencyCaregiverCall() {
+        const lang = window.i18n ? window.i18n.getLang() : 'en';
+        const msgs = {
+            as: "সহায় আসিছে আইতা, অপেক্ষা কৰক। কেয়াৰগিভাৰক মাতিছোঁ।",
+            bn: "সাহায্য আসছে দিদা। পরিচর্যাকারীকে ডাকছি।",
+            hi: "मदद आ रही है अम्माजी। देखभालकर्ता को बुला रही हूँ।",
+            en: "Help is coming dear. Calling your caregiver now.",
+            brx: "হেফাজাব ফৈনাই আবৈ। হেফাজাবগিরিখৌ আসোম খালামোন।",
+            mni: "মতেং পাংবা লাকপা ঙম্মি ইমা। য়েংশিনবীরিবখু মাতিরি।",
+            lus: "Mipui in a lo thleng ang Nu. Enkawltu a ko tawh.",
+            kha: "Ka mphaw la wan Kong. Nongsumar la khot tawh."
+        };
+        const msg = msgs[lang] || msgs['en'];
+
+        if (window.voiceAssistant) {
+            window.voiceAssistant.playChime('alert');
+            window.voiceAssistant.speakWithEmotion(msg, 'calm');
+            window.voiceAssistant.addChatBubble('ai', '📞 ' + msg, '🚨');
+        }
+
+        if (window.caregiverDashboard?.addAlert) {
+            window.caregiverDashboard.addAlert({
+                type: 'emergency',
+                message: 'Patient manually triggered emergency caregiver call',
+                ts: new Date().toISOString()
+            });
+        }
+
+        alert("📞 Calling Primary Caregiver / Village ASHA Worker (+91 94350-XXXXX)... Alert notification sent!");
+    }
+}
+
+window.appNav = new AppNavigator();
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.appNav.init();
+});

@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="as">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>স্মৃতি-NER (Smriti-NER) — Cognitive Gaming & Memory Assistance Platform</title>
+    <meta name="description" content="AI-Based Cognitive Gaming & Memory Assistance Platform for Elderly Dementia Patients in North Eastern Region">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1E6F5C">
+
+    <!-- CSS Modules -->
+    <link rel="stylesheet" href="css/elderly-theme.css">
+    <link rel="stylesheet" href="css/games.css">
+    <link rel="stylesheet" href="css/caregiver.css">
+    <link rel="stylesheet" href="css/doctor-portal.css">
+</head>
+<body class="font-size-1">
+    <div class="app-container">
+        <!-- Top Accessibility & Navigation Header -->
+        <header class="top-nav-bar" role="banner">
+            <div class="brand-section">
+                <div class="app-logo-badge" aria-hidden="true">🌿</div>
+                <div class="brand-text">
+                    <h1 data-i18n="appName">স্মৃতি-NER (Smriti)</h1>
+                    <p data-i18n="tagline">উত্তৰ-পূৰ্বাঞ্চলৰ জেষ্ঠ্য নাগৰিকসকলৰ বাবে মৰম আৰু স্মৃতিৰ সহযোগী</p>
+                </div>
+            </div>
+
+            <div class="access-controls" role="toolbar" aria-label="Accessibility and language options">
+                <!-- Active Role Badge & Switcher Button -->
+                <button class="role-badge-btn role-patient" id="top-role-badge" onclick="window.authManager.showRolePickerModal()" aria-label="Switch User Role & Portal" title="Click to switch between Patient, Caretaker, or Doctor">
+                    <span id="top-role-icon">👴</span>
+                    <span id="top-role-text">Patient Mode</span>
+                    <span style="font-size:0.7rem; opacity:0.7;">▼</span>
+                </button>
+
+                <!-- Regional Language Selector -->
+                <select id="lang-selector" class="lang-select-box" aria-label="Select Regional Language">
+                    <option value="as">অসমীয়া (Assamese)</option>
+                    <option value="bn">বাংলা (Bengali)</option>
+                    <option value="brx">बड़ो (Bodo)</option>
+                    <option value="mni">মৈতৈলোন্ (Manipuri)</option>
+                    <option value="lus">Mizo ṭawng (Mizo)</option>
+                    <option value="kha">Khasi (Meghalaya)</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="en">English</option>
+                </select>
+
+                <!-- Font Size Button -->
+                <button class="access-btn" onclick="window.appNav.cycleFontSize()" aria-label="Adjust font size">
+                    <span>🔤</span> <span data-i18n="fontSize">ফণ্ট আকাৰ</span>
+                </button>
+
+                <!-- High Contrast Toggle -->
+                <button class="access-btn" id="btn-contrast-toggle" onclick="window.appNav.toggleHighContrast()" aria-label="Toggle high contrast">
+                    <span>👁️</span> <span data-i18n="highContrast">উচ্চ বৈপৰীত্য</span>
+                </button>
+
+                <!-- AI Caretaker Key Configuration Button -->
+                <button class="access-btn btn-ai-key" id="btn-top-ai-key" onclick="window.showGeminiKeyModal()" aria-label="Configure AI Caretaker Key">
+                    <span>🤖</span> <span>AI Key</span>
+                </button>
+
+                <!-- Emergency Caregiver / ASHA Button -->
+                <button class="access-btn btn-emergency" onclick="window.appNav.emergencyCaregiverCall()" aria-label="Call caregiver or health worker">
+                    <span>📞</span> <span data-i18n="emergencyCall">সহায় / কেয়াৰগিভাৰ</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- AI Caretaker Setup Notice Banner (Visible if key not yet entered) -->
+        <div id="ai-key-notice-bar" class="ai-key-notice-bar hidden" role="region" aria-label="AI Key Setup Banner">
+            <div class="notice-bar-content">
+                <span class="notice-bar-icon">✨</span>
+                <span><strong>AI Caretaker Ready:</strong> Add your Google Gemini API Key to enable human-like caretaker conversations in 8 regional languages.</span>
+            </div>
+            <button class="btn-setup-now" onclick="window.showGeminiKeyModal()">🔑 Enter Free API Key</button>
+        </div>
+
+        <!-- Greeting Hero Banner with Voice Assistant -->
+        <section class="greeting-hero-card" aria-label="Daily Greeting & Voice Companion">
+            <div class="greeting-content">
+                <h2 id="header-greeting-text">সু-প্ৰভাত! আপোনাৰ দিনটো আনন্দময় হওক।</h2>
+                <div class="date-badge">
+                    <span>📅</span> <span id="header-date-text"></span>
+                </div>
+            </div>
+
+            <button class="voice-assistant-hero-btn" id="voice-assistant-mic-btn"
+                onclick="window.voiceAssistant.toggleListening()"
+                aria-label="Voice Companion" aria-pressed="false">
+                <span class="mic-icon">🎙️</span>
+                <span data-i18n="voiceCompanion">আই / বাইদেউ সহযোগী (Voice Assistant)</span>
+            </button>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════════
+             AI CARETAKER COMPANION PANEL (Floating Chat)
+             ════════════════════════════════════════════════════════ -->
+        <div id="ai-chat-panel" class="ai-companion-panel panel-hidden" role="dialog" aria-label="AI Caretaker Conversation">
+
+            <!-- Panel Header -->
+            <div class="ai-panel-header">
+                <div class="ai-panel-header-left">
+                    <span class="ai-avatar-badge">🤗</span>
+                    <div>
+                        <div class="ai-panel-title" data-i18n="voiceCompanion">AI সহযোগী</div>
+                        <div id="ai-panel-status" class="ai-panel-status status-idle"></div>
+                    </div>
+                </div>
+                <div class="ai-panel-header-right">
+                    <!-- Quick language buttons -->
+                    <div class="lang-quick-btns" aria-label="Quick language switch">
+                        <button class="lang-quick-btn" onclick="window.i18n?.setLanguage('as')" title="Assamese">অসমীয়া</button>
+                        <button class="lang-quick-btn" onclick="window.i18n?.setLanguage('bn')" title="Bengali">বাংলা</button>
+                        <button class="lang-quick-btn" onclick="window.i18n?.setLanguage('hi')" title="Hindi">हिन्दी</button>
+                        <button class="lang-quick-btn" onclick="window.i18n?.setLanguage('en')" title="English">EN</button>
+                        <button class="lang-quick-btn" onclick="window.i18n?.setLanguage('brx')" title="Bodo">Bodo</button>
+                        <button class="lang-quick-btn" onclick="window.i18n?.setLanguage('mni')" title="Manipuri">মৈতৈ</button>
+                        <button class="lang-quick-btn" onclick="window.i18n?.setLanguage('lus')" title="Mizo">Mizo</button>
+                        <button class="lang-quick-btn" onclick="window.i18n?.setLanguage('kha')" title="Khasi">Khasi</button>
+                    </div>
+                    <button class="ai-panel-close-btn" onclick="window.voiceAssistant.toggleChatPanel(false)" aria-label="Close conversation panel">✕</button>
+                </div>
+            </div>
+
+            <!-- Chat Feed -->
+            <div id="ai-chat-feed" class="ai-chat-feed" role="log" aria-live="polite" aria-label="Conversation history">
+                <!-- Welcome message injected by JS on load -->
+            </div>
+
+            <!-- Interim speech display (live transcription) -->
+            <div id="ai-interim-text" class="ai-interim-text" aria-live="polite"></div>
+
+            <!-- Panel Action Row -->
+            <div class="ai-panel-actions">
+                <button class="ai-action-btn ai-btn-mic"
+                    onclick="window.voiceAssistant.toggleListening()"
+                    aria-label="Start / Stop listening">
+                    🎙️ Talk to me
+                </button>
+                <button class="ai-action-btn ai-btn-memory"
+                    onclick="window.voiceAssistant.triggerReminiscence()"
+                    aria-label="Share a memory prompt">
+                    🌸 Memory
+                </button>
+                <button class="ai-action-btn ai-btn-stop"
+                    onclick="window.voiceAssistant.stopSpeaking()"
+                    aria-label="Stop speaking">
+                    ⏹ Stop
+                </button>
+                <button class="ai-action-btn ai-btn-setup"
+                    onclick="window.voiceAssistant._showApiKeyPrompt()"
+                    aria-label="Setup AI Key"
+                    title="Setup Gemini AI for natural responses">
+                    ⚙️ AI Key
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert Banner for distress / escalation events -->
+        <div id="ai-alert-banner" class="ai-alert-banner hidden" role="alert" aria-live="assertive"></div>
+
+        <!-- Always-visible Chat Toggle Pill -->
+        <button class="ai-chat-toggle-pill" onclick="window.voiceAssistant.toggleChatPanel()" aria-label="Open AI Companion Chat">
+            🤗 AI Companion
+        </button>
+
+        <!-- ════════════════════════════════════════════════════════
+             GEMINI API KEY SETUP MODAL
+             Shown the first time user tries to talk, or from settings
+             ════════════════════════════════════════════════════════ -->
+        <div id="gemini-key-modal" class="gemini-modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Set up AI Companion" onclick="if(event.target===this) this.classList.add('hidden')">
+            <div class="gemini-modal-card">
+                <button class="gemini-modal-close" onclick="document.getElementById('gemini-key-modal').classList.add('hidden')" aria-label="Close modal">✕</button>
+                <div class="gemini-modal-icon">🤗</div>
+                <h2 class="gemini-modal-title">Enable AI Caretaker</h2>
+                <p class="gemini-modal-desc">
+                    To make Mitra speak and respond like a real human caretaker, 
+                    please enter your <strong>Google Gemini API Key</strong>.<br><br>
+                    Get a free key at 
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">aistudio.google.com</a>
+                </p>
+                <input type="password"
+                    id="gemini-key-input"
+                    class="gemini-key-input"
+                    placeholder="Paste your Gemini API key here (starts with AIza...)"
+                    autocomplete="off"
+                    spellcheck="false">
+                <div class="gemini-modal-btns">
+                    <button class="gemini-btn-save" onclick="window.voiceAssistant.saveApiKey()">
+                        ✅ Enable AI Caretaker
+                    </button>
+                    <button class="gemini-btn-skip" onclick="document.getElementById('gemini-key-modal').classList.add('hidden')">
+                        Skip (Use Basic Mode)
+                    </button>
+                </div>
+                <p class="gemini-modal-note">
+                    🔒 Your key is saved only on this device. Never sent to any server except Google.
+                    <br>✅ Gemini 1.5 Flash — Free tier available.
+                </p>
+            </div>
+        </div>
+
+        <!-- Offline Resilience Status Banner -->
+        <div class="offline-bar">
+            <div>
+                <strong>North-Eastern Health Network</strong> • ASHA Tele-Care
+            </div>
+            <div id="offline-sync-badge" class="status-badge online">
+                🟢 Online (Local-First Sync Ready)
+            </div>
+        </div>
+
+
+        <!-- ========================================================
+             SCREEN 1: HOME DASHBOARD
+             ======================================================== -->
+        <main id="home-screen" class="app-screen">
+            <div class="home-tiles-grid">
+                <!-- Tile 1: Cognitive Games -->
+                <div class="hub-tile" onclick="window.appNav.showScreen('games-screen')" tabindex="0" role="button" aria-label="Open Cognitive Games">
+                    <div class="tile-icon">🧠</div>
+                    <div>
+                        <h3 data-i18n="navGames">মগজুৰ খেল (Games)</h3>
+                        <p data-i18n="gamesSubtitle">আপোনাৰ সুবিধা অনুযায়ী আৰামেৰে খেলক — কোনো খৰখেদা নাই</p>
+                    </div>
+                </div>
+
+                <!-- Tile 2: Medication & Reminders -->
+                <div class="hub-tile" onclick="window.appNav.showScreen('reminders-screen')" tabindex="0" role="button" aria-label="Open Medication and Schedule">
+                    <div class="tile-icon">💊</div>
+                    <div>
+                        <h3 data-i18n="navReminders">দৰব আৰু সময়সূচী</h3>
+                        <p data-i18n="remindersSubtitle">নিয়মিত ঔষধ আৰু পানী খোৱাৰ সময়সূচী</p>
+                    </div>
+                </div>
+
+                <!-- Tile 3: Peaceful Breathing / Wellness -->
+                <div class="hub-tile" onclick="window.appNav.showScreen('wellness-screen')" tabindex="0" role="button" aria-label="Open Calm and Breathing Therapy">
+                    <div class="tile-icon">🪷</div>
+                    <div>
+                        <h3 data-i18n="navWellness">মনৰ শান্তি (Calm)</h3>
+                        <p data-i18n="game5Desc">বাঁহীৰ সুৰ আৰু ব্ৰহ্মপুত্ৰৰ শান্ত নদীৰ শব্দৰে উশাহ-নিশাহৰ ব্যায়াম</p>
+                    </div>
+                </div>
+
+                <!-- Tile 4: Caregiver / ASHA Portal -->
+                <div class="hub-tile" onclick="window.appNav.showScreen('caregiver-screen')" tabindex="0" role="button" aria-label="Open Caregiver Portal">
+                    <div class="tile-icon">📋</div>
+                    <div>
+                        <h3 data-i18n="navCaregiver">অভিভাৱক ডেশ্ববৰ্ড</h3>
+                        <p data-i18n="caregiverTitle">কেয়াৰগিভাৰ আৰু আশা (ASHA) কৰ্মী পৰ্টেল</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ========================================================
+             SCREEN 2: COGNITIVE GAMES HUB
+             ======================================================== -->
+        <section id="games-screen" class="app-screen hidden">
+            <div class="screen-intro-card" style="margin-bottom: 24px;">
+                <h2 data-i18n="gamesTitle">মন সতেজ কৰা খেলসমূহ</h2>
+                <p data-i18n="gamesSubtitle">আপোনাৰ সুবিধা অনুযায়ী আৰামেৰে খেলক — কোনো খৰখেদা নাই</p>
+            </div>
+
+            <div class="home-tiles-grid">
+                <!-- Game 1: Smriti Mel -->
+                <div class="hub-tile" onclick="window.appNav.launchGame('memory-match')" tabindex="0" role="button">
+                    <div class="tile-icon" style="background:#FDEDEC; color:#C0392B;">👒</div>
+                    <div>
+                        <h3 data-i18n="game1Title">স্মৃতি মিল (Smriti Mel)</h3>
+                        <p data-i18n="game1Desc">উত্তৰ-পূবৰ পৰম্পৰাগত বস্তু যেনে জাপি, ঢোল, গামোচাৰ মিল বিচাৰক</p>
+                    </div>
+                </div>
+
+                <!-- Game 2: Cha Bagan -->
+                <div class="hub-tile" onclick="window.appNav.launchGame('tea-garden')" tabindex="0" role="button">
+                    <div class="tile-icon" style="background:#E8F8F5; color:#27AE60;">🍃</div>
+                    <div>
+                        <h3 data-i18n="game2Title">চা বাগান (Tea Garden)</h3>
+                        <p data-i18n="game2Desc">মনোযোগ বৃদ্ধি: সুন্দৰ দুটি পাত এটি কুঁহি সংগ্ৰহ কৰক</p>
+                    </div>
+                </div>
+
+                <!-- Game 3: Routine Sequence -->
+                <div class="hub-tile" onclick="window.appNav.launchGame('routine-sequence')" tabindex="0" role="button">
+                    <div class="tile-icon" style="background:#FEF9E7; color:#F39C12;">☕</div>
+                    <div>
+                        <h3 data-i18n="game3Title">দৈনন্দিন কাম (Daily Sequence)</h3>
+                        <p data-i18n="game3Desc">ৰাতিপুৱাৰ চাহৰ পৰা নামাজ/নামঘৰলৈ — সঠিক ক্ৰম ঠিক কৰক</p>
+                    </div>
+                </div>
+
+                <!-- Game 4: Weave & Patterns -->
+                <div class="hub-tile" onclick="window.appNav.launchGame('pattern-weave')" tabindex="0" role="button">
+                    <div class="tile-icon" style="background:#F5EEF8; color:#8E44AD;">🧣</div>
+                    <div>
+                        <h3 data-i18n="game4Title">ৰং আৰু গামোচা (Weave & Pattern)</h3>
+                        <p data-i18n="game4Desc">নক্সা আৰু স্থানীয় ফল-মূল চিনি উলিওৱাৰ খেল</p>
+                    </div>
+                </div>
+
+                <!-- Game 5: Breathing & Peace -->
+                <div class="hub-tile" onclick="window.appNav.launchGame('calm-breathing')" tabindex="0" role="button">
+                    <div class="tile-icon" style="background:#EBF5FB; color:#2980B9;">🪷</div>
+                    <div>
+                        <h3 data-i18n="game5Title">মনৰ শান্তি (Peaceful Breathing)</h3>
+                        <p data-i18n="game5Desc">বাঁহীৰ সুৰ আৰু ব্ৰহ্মপুত্ৰৰ শান্ত নদীৰ শব্দৰে উশাহ-নিশাহৰ ব্যায়াম</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SCREEN 3: REMINDERS & HEALTH SCHEDULE
+             ======================================================== -->
+        <section id="reminders-screen" class="app-screen hidden">
+            <div class="reminders-screen-container">
+                <div class="screen-intro-card">
+                    <h2 data-i18n="remindersTitle">আজিৰ সময়সূচী আৰু দৰব</h2>
+                    <p data-i18n="remindersSubtitle">আপোনাৰ স্বাস্থ্যৰ যতন আমাৰ প্ৰথম দায়িত্ব</p>
+                </div>
+
+                <!-- Hydration Tracker Box -->
+                <div class="hydration-card">
+                    <div class="hydration-left">
+                        <h3 data-i18n="hydrationTitle">পানী খোৱাৰ সময় (Hydration)</h3>
+                        <p data-i18n="hydrationPrompt">এঢোক পানী খাই লওক, শৰীৰ সুস্থ থাকিব</p>
+                        <div class="hydration-glasses-row" id="hydration-glasses-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="hydration-right">
+                        <button class="btn-log-water" onclick="window.reminders.recordWaterIntake()">
+                            <span data-i18n="drinkWaterBtn">মই পানী খালোঁ 💧</span> (<span id="hydration-count-text">3 / 7</span>)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Medication & Activities List -->
+                <div id="reminders-list-container" style="display:flex; flex-direction:column; gap:16px;">
+                    <!-- Populated dynamically by reminders.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SCREEN 4: WELLNESS & CALM BREATHING
+             ======================================================== -->
+        <section id="wellness-screen" class="app-screen hidden">
+            <!-- Populated dynamically by calm-breathing.js -->
+        </section>
+
+        <!-- ========================================================
+             SCREEN 5: CAREGIVER DASHBOARD
+             ======================================================== -->
+        <section id="caregiver-screen" class="app-screen hidden" aria-labelledby="cg-title">
+            <div class="cg-container">
+                <!-- Patient Profile Summary Hero -->
+                <div class="cg-hero">
+                    <div class="cg-hero-info">
+                        <h2 id="cg-patient-name">আইতা / ককা (Aita / Koka)</h2>
+                        <p id="cg-patient-age">৭৪ বছৰ • কামৰূপ / গুৱাহাটী (Kamrup PHC, Assam)</p>
+                        <p style="margin-top:4px; font-size:0.9rem; opacity:0.85;">Stage: Mild Cognitive Impairment (MCI) • Monitored by ASHA Facilitator Deepa Kalita</p>
+                    </div>
+                    <div class="cg-stats-pill-group">
+                        <div class="cg-stat-pill">
+                            <div class="stat-num" id="cg-overall-score">76 / 100</div>
+                            <div class="stat-lbl" data-i18n="cognitiveRadar">Cognitive Index</div>
+                        </div>
+                        <div class="cg-stat-pill">
+                            <div class="stat-num" id="cg-total-sessions">14</div>
+                            <div class="stat-lbl" data-i18n="sessionsLogged">Sessions Logged</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Report Action Bar -->
+                <div class="cg-export-bar">
+                    <button class="btn-export-clinical" onclick="window.caregiverDashboard.exportClinicalReport()">
+                        📄 <span data-i18n="downloadClinicalReport">Download Formal Clinical Assessment (MoCA / MMSE Report)</span>
+                    </button>
+                    <button class="btn-export-clinical" style="background:#1A5276;" onclick="window.authManager.requestRoleSwitch('doctor')">
+                        🩺 <span>Switch to Doctor Clinical View</span>
+                    </button>
+                </div>
+
+                <!-- Cognitive Domain Health Breakdown -->
+                <div>
+                    <h3 class="cg-section-title">
+                        <span>📊</span> <span data-i18n="cognitiveRadar">জ্ঞানীয় ক্ষমতাৰ স্থিতি (Cognitive Health Index)</span>
+                    </h3>
+                    <div class="cg-domains-grid" id="cg-domains-container">
+                        <!-- Populated dynamically by caregiver-dashboard.js -->
+                    </div>
+                </div>
+
+                <!-- Longitudinal 7-Day Performance Progression Chart -->
+                <div class="cg-chart-card">
+                    <h3 class="cg-section-title">
+                        <span>📈</span> <span data-i18n="performanceTrendTitle">Longitudinal Stability & Performance Trend (Past 7 Sessions)</span>
+                    </h3>
+                    <p style="font-size:0.9rem; color:var(--text-secondary);" data-i18n="performanceTrendDesc">Measures accuracy and prompt reaction times across therapeutic sessions.</p>
+                    <div class="trend-bars-container" id="cg-trend-bars">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Clinical Alerts Feed -->
+                <div>
+                    <h3 class="cg-section-title">
+                        <span>🔔</span> <span data-i18n="clinicalAlertsFeed">Clinical & Medication Alerts Feed</span>
+                    </h3>
+                    <div class="cg-alerts-list" id="cg-alerts-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Caregiver Observation Notes Feed -->
+                <div class="cg-notes-box">
+                    <h3 class="cg-section-title">
+                        <span>📝</span> <span data-i18n="caregiverNotesTitle">Caregiver & ASHA Worker Clinical Notes</span>
+                    </h3>
+                    <div class="cg-notes-input-row">
+                        <input type="text" id="cg-notes-input" class="cg-notes-input" data-i18n="notePlaceholder" placeholder="Add observation note (e.g. Patient slept well, high mood during Bihu song)...">
+                        <button class="btn-save-note" onclick="window.caregiverDashboard.saveObservationNote()">+ <span data-i18n="addNoteBtn">Add Note</span></button>
+                    </div>
+                    <div id="cg-notes-feed">
+                        <div class="caregiver-note-item">
+                            <div class="note-time">Yesterday, 06:15 PM • Caregiver Deepa</div>
+                            <div class="note-content">Patient was very joyful while matching the Jaapi hat and recounted memories of village Bihu celebrations.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SCREEN 6: DOCTOR CLINICAL PORTAL
+             ======================================================== -->
+        <section id="doctor-screen" class="app-screen hidden" aria-labelledby="doc-title">
+            <div class="doc-portal-container">
+                <!-- Clinician & Patient Header -->
+                <div class="doc-header-card">
+                    <div>
+                        <h2 class="doc-patient-name" id="doc-patient-name">Aita / Koka (আইতা / ককা)</h2>
+                        <p class="doc-patient-meta" id="doc-patient-meta">Age: 74 yrs • Female • District: Kamrup PHC, Assam • Attending: Dr. Ananya Sarma (MD)</p>
+                        <span class="doc-patient-diag" id="doc-patient-diagnosis">Clinical Stage: Mild Cognitive Impairment (MCI) • CDR 0.5 (Mild)</span>
+                    </div>
+                    <div>
+                        <button class="btn-doc-export" onclick="window.doctorDashboard.exportClinicalReport()">
+                            📄 Export Clinical EHR Report (PDF)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Clinical Diagnostic Score Matrix -->
+                <div class="doc-score-grid">
+                    <div class="doc-score-card">
+                        <div class="doc-score-num" id="doc-score-mmse">23 / 30</div>
+                        <div class="doc-score-title">MMSE Score</div>
+                        <div class="doc-score-sub">Mini-Mental State Exam (Mild Deficit)</div>
+                    </div>
+                    <div class="doc-score-card">
+                        <div class="doc-score-num" id="doc-score-moca">19 / 30</div>
+                        <div class="doc-score-title">MoCA Score</div>
+                        <div class="doc-score-sub">Montreal Cognitive Assessment</div>
+                    </div>
+                    <div class="doc-score-card">
+                        <div class="doc-score-num" id="doc-score-cdr">0.5 (Mild)</div>
+                        <div class="doc-score-title">CDR Stage</div>
+                        <div class="doc-score-sub">Clinical Dementia Rating Scale</div>
+                    </div>
+                    <div class="doc-score-card">
+                        <div class="doc-score-num" id="doc-score-sessions">14 Logs</div>
+                        <div class="doc-score-title">ASHA Telemetry</div>
+                        <div class="doc-score-sub">Cognitive Task Completions</div>
+                    </div>
+                </div>
+
+                <!-- 5-Domain Neurological Radar -->
+                <div>
+                    <h3 class="cg-section-title">
+                        <span>🧠</span> <span>5-Domain Cognitive Radar Breakdown (Neuropsychological Analysis)</span>
+                    </h3>
+                    <div class="doc-domains-container" id="doc-domains-grid">
+                        <!-- Populated dynamically by doctor-dashboard.js -->
+                    </div>
+                </div>
+
+                <!-- Longitudinal Trend Graph -->
+                <div class="cg-chart-card">
+                    <h3 class="cg-section-title">
+                        <span>📈</span> <span>Longitudinal Reaction Latency & Task Accuracy (Past 7 Sessions)</span>
+                    </h3>
+                    <p style="font-size:0.9rem; color:var(--text-secondary);">Tracking latency reduction and error reduction across rural PHC sessions.</p>
+                    <div class="trend-bars-container" id="doc-trend-bars">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Digital Prescription Pad -->
+                <div class="doc-rx-card">
+                    <h3 class="cg-section-title">
+                        <span>💊</span> <span>Digital Clinical Prescription Pad (Auto-Syncs with Patient Reminders)</span>
+                    </h3>
+                    <div class="doc-rx-feed" id="doc-rx-feed">
+                        <!-- Populated dynamically -->
+                    </div>
+
+                    <!-- Add Prescription Form -->
+                    <div class="doc-rx-form">
+                        <div class="doc-form-group">
+                            <label>Medication Name (Generic/Brand)</label>
+                            <input type="text" id="rx-input-med" class="doc-form-input" placeholder="e.g. Donepezil / Memantine">
+                        </div>
+                        <div class="doc-form-group">
+                            <label>Dosage</label>
+                            <input type="text" id="rx-input-dosage" class="doc-form-input" placeholder="e.g. 5 mg / 1 Tab">
+                        </div>
+                        <div class="doc-form-group">
+                            <label>Frequency</label>
+                            <input type="text" id="rx-input-freq" class="doc-form-input" placeholder="e.g. Once Daily (Night)">
+                        </div>
+                        <div class="doc-form-group">
+                            <label>Time (24h)</label>
+                            <input type="time" id="rx-input-time" class="doc-form-input" value="20:30">
+                        </div>
+                        <div class="doc-form-group" style="grid-column: 1 / -1;">
+                            <label>Therapeutic Purpose / Instructions</label>
+                            <input type="text" id="rx-input-purpose" class="doc-form-input" placeholder="e.g. For cognitive stabilization; take with food">
+                        </div>
+                        <button class="btn-add-rx" style="grid-column: 1 / -1;" onclick="window.doctorDashboard.addPrescription()">
+                            + Prescribe Medication & Sync with Patient Schedule
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Clinical Progress Notes & ICD-10 Coding -->
+                <div class="doc-notes-card">
+                    <h3 class="cg-section-title">
+                        <span>📋</span> <span>Clinical Diagnostic Notes & ICD-10 Surveillance</span>
+                    </h3>
+                    <div class="doc-notes-feed" id="doc-notes-feed">
+                        <!-- Populated dynamically -->
+                    </div>
+
+                    <!-- Add Clinical Note Form -->
+                    <div class="doc-note-form">
+                        <div class="doc-form-group">
+                            <label>Diagnostic Classification (ICD-10 Code)</label>
+                            <select id="doc-note-icd-select" class="doc-form-select">
+                                <option value="ICD-10 G30.0 (Early-onset Alzheimer Disease with MCI)">ICD-10 G30.0 — Alzheimer's Disease (Early Onset with MCI)</option>
+                                <option value="ICD-10 F03.90 (Unspecified Dementia, Mild Severity)">ICD-10 F03.90 — Unspecified Dementia (Mild Stage)</option>
+                                <option value="ICD-10 F01.50 (Vascular Dementia with Cognitive Impairment)">ICD-10 F01.50 — Vascular Dementia</option>
+                                <option value="ICD-10 G31.84 (Mild Cognitive Impairment, Amnestic)">ICD-10 G31.84 — Mild Cognitive Impairment (Amnestic Type)</option>
+                            </select>
+                        </div>
+                        <div class="doc-form-group">
+                            <label>Clinical Observation & Impression</label>
+                            <textarea id="doc-note-input-impression" class="doc-note-textarea" placeholder="Record diagnostic notes, neurological observations, behavioral markers..."></textarea>
+                        </div>
+                        <div class="doc-form-group">
+                            <label>Clinical Recommendation / Care Plan</label>
+                            <input type="text" id="doc-note-input-plan" class="doc-form-input" placeholder="e.g. Schedule ASHA follow-up in 30 days, maintain Donepezil regimen">
+                        </div>
+                        <button class="btn-save-doc-note" onclick="window.doctorDashboard.saveClinicalNote()">
+                            Save Clinical Progress Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             ACTIVE GAME STAGE CONTAINER
+             ======================================================== -->
+        <section id="game-active-container" class="app-screen hidden">
+            <!-- Dynamic game contents load here -->
+        </section>
+    </div>
+
+    <!-- Floating Bottom Navigation for Elderly Accessibility -->
+    <nav class="bottom-nav-bar" role="navigation" aria-label="Main Navigation">
+        <button class="bottom-nav-btn active" id="bottom-nav-home" onclick="window.appNav.showScreen('home-screen')">
+            <span class="nav-icon">🏠</span>
+            <span data-i18n="navHome">Home</span>
+        </button>
+        <button class="bottom-nav-btn" id="bottom-nav-games" onclick="window.appNav.showScreen('games-screen')">
+            <span class="nav-icon">🧠</span>
+            <span data-i18n="navGames">Games</span>
+        </button>
+        <button class="bottom-nav-btn" id="bottom-nav-reminders" onclick="window.appNav.showScreen('reminders-screen')">
+            <span class="nav-icon">⏰</span>
+            <span data-i18n="navReminders">Schedule</span>
+        </button>
+        <button class="bottom-nav-btn" id="bottom-nav-wellness" onclick="window.appNav.showScreen('wellness-screen')">
+            <span class="nav-icon">🪷</span>
+            <span data-i18n="navWellness">Calm</span>
+        </button>
+        <button class="bottom-nav-btn" id="bottom-nav-caregiver" onclick="window.appNav.showScreen('caregiver-screen')">
+            <span class="nav-icon">📋</span>
+            <span data-i18n="navCaregiver">Caregiver</span>
+        </button>
+        <button class="bottom-nav-btn" id="bottom-nav-doctor" onclick="window.appNav.showScreen('doctor-screen')" style="display:none;">
+            <span class="nav-icon">🩺</span>
+            <span>Doctor</span>
+        </button>
+    </nav>
+
+    <!-- Core Scripts -->
+    <script src="js/auth-manager.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/storage-db.js"></script>
+    <script src="js/cogni-adapt-engine.js"></script>
+    <!-- AI Caretaker Engine (must load before voice-assistant) -->
+    <script src="js/ai-caretaker-responses.js"></script>
+    <script src="js/ai-caretaker.js"></script>
+    <script src="js/reminiscence-engine.js"></script>
+    <!-- Gemini AI Service — natural language caretaker responses -->
+    <script src="js/gemini-ai-service.js"></script>
+    <script src="js/voice-assistant.js"></script>
+    <script src="js/reminders.js"></script>
+    <script src="js/caregiver-dashboard.js"></script>
+    <script src="js/doctor-dashboard.js"></script>
+    <script src="js/games/memory-match.js"></script>
+    <script src="js/games/tea-garden.js"></script>
+    <script src="js/games/routine-sequence.js"></script>
+    <script src="js/games/pattern-weave.js"></script>
+    <script src="js/games/calm-breathing.js"></script>
+    <script src="js/app.js"></script>
+
+    <!-- Service Worker Registration for Offline Capabilities -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('ServiceWorker registered:', reg.scope))
+                    .catch(err => console.log('ServiceWorker registration error:', err));
+            });
+        }
+    </script>
+</body>
+</html>
